@@ -61,13 +61,6 @@ p.lead {
   margin-right: 1rem;
 }
 
-.social-icons a:last-child {
-  margin-right: 0;
-}
-
-.social-icons a:hover {
-  background-color: #BD5D38;
-}
 
 .dev-icons {
   font-size: 3rem;
@@ -81,9 +74,7 @@ p.lead {
   text-transform: uppercase;
 }
 
-#sideNav .navbar-toggler:focus {
-  outline-color: #d48a6e;
-}
+
 
 @media (min-width: 992px) {
   #sideNav {
