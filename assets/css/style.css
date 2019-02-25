@@ -73,9 +73,7 @@ p.lead {
   font-size: 3rem;
 }
 
-.dev-icons .list-inline-item i:hover {
-  color: #BD5D38;
-}
+
 
 #sideNav .navbar-nav .nav-item .nav-link {
   font-weight: 800;
@@ -169,18 +167,24 @@ section.resume-section .resume-item .resume-date {
   }
 }
 
-.bg-primary {
-  background-color: #BD5D38 !important;
+
+::-webkit-scrollbar {
+  width: 20px;
 }
 
-.text-primary {
-  color: #BD5D38 !important;
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey; 
+  border-radius: 10px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background:#007bff; 
+  border-radius: 10px;
 }
 
-a {
-  color: #BD5D38;
-}
-
-a:hover, a:focus, a:active {
-  color: #824027;
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #000099 ; 
 }
