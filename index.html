@@ -68,6 +68,17 @@
   .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 25%, transparent); }
   h1 { font-size: clamp(36px, 6vw, 56px); line-height: 1.08; letter-spacing: -0.035em; font-weight: 700; }
   h1 .muted { color: var(--faint); }
+  h1 .typed { color: var(--text); }
+  .caret { display: inline-block; width: 3px; height: .9em; margin-left: 4px; vertical-align: -0.08em;
+           background: var(--accent); border-radius: 1px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .hero h1 { min-height: 2.2em; }
+
+  /* Hero entrance */
+  .hero > * { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+  .hero > *:nth-child(2) { animation-delay: .08s; } .hero > *:nth-child(3) { animation-delay: .16s; }
+  .hero > *:nth-child(4) { animation-delay: .24s; } .hero > *:nth-child(5) { animation-delay: .32s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
   .lead { margin-top: 24px; font-size: 18px; color: var(--muted); max-width: 640px; }
   .lead strong { color: var(--text); font-weight: 500; }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
@@ -108,6 +119,13 @@
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px;
           display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
   .card:hover { border-color: var(--faint); transform: translateY(-2px); }
+  /* Cursor spotlight */
+  .card { position: relative; isolation: isolate; }
+  .card::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; z-index: -1; opacity: 0;
+                  transition: opacity .3s; pointer-events: none;
+                  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%); }
+  .card:hover::before { opacity: 1; }
+  .stat b { font-variant-numeric: tabular-nums; }
   .card .meta { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px; color: var(--faint); margin-bottom: 14px; }
   .card p { color: var(--muted); font-size: 14.5px; margin-top: 8px; flex: 1; }
   .card .metric { display: inline-block; margin-top: 14px; font-family: var(--mono); font-size: 12.5px; color: var(--accent);
@@ -147,12 +165,16 @@
   /* Reveal on scroll */
   .reveal { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
   .reveal.in { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; }
+    .hero > * { animation: none; } .caret { animation: none; } .card::before { display: none; }
+  }
 
   /* Responsive */
   @media (max-width: 760px) {
     .wrap { padding: 0 16px; }
     .links a { display: none; }
+    .hero h1 { min-height: 3.3em; }
     .hero { padding: 56px 0 48px; }
     .stats { grid-template-columns: repeat(2, 1fr); margin-top: 44px; }
     section { padding: 56px 0; }
@@ -188,7 +210,7 @@
       <img class="avatar" src="assets/img/pp.jpg" alt="Anubhav Gupta">
       <span class="status"><span class="dot"></span>Software Engineer II @ Deloitte USI · Pune</span>
     </div>
-    <h1>Anubhav Gupta.<br><span class="muted">I build reliable .NET backends.</span></h1>
+    <h1>Anubhav Gupta.<br><span class="muted">I build <span class="typed" id="typed">reliable .NET backends.</span><span class="caret" aria-hidden="true"></span></span></h1>
     <p class="lead">
       Software engineer with <strong>~6 years</strong> building enterprise backend systems and full-stack apps on the Microsoft stack —
       <strong>C#, ASP.NET Core, SQL Server and Angular</strong>. Currently building rule-based eligibility and workflow platforms at Deloitte;
@@ -210,10 +232,10 @@
     </div>
 
     <div class="stats">
-      <div class="stat"><b>~6 yrs</b><span>Professional experience</span></div>
-      <div class="stat"><b>30–40%</b><span>Faster API response times</span></div>
-      <div class="stat"><b>60%</b><span>Less manual processing</span></div>
-      <div class="stat"><b>2×</b><span>Outstanding performance awards</span></div>
+      <div class="stat"><b data-count>~6 yrs</b><span>Professional experience</span></div>
+      <div class="stat"><b data-count>30–40%</b><span>Faster API response times</span></div>
+      <div class="stat"><b data-count>60%</b><span>Less manual processing</span></div>
+      <div class="stat"><b data-count>2×</b><span>Outstanding performance awards</span></div>
     </div>
   </div>
 
@@ -416,6 +438,57 @@
   // Header border on scroll
   const header = document.getElementById('top');
   addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 8), { passive: true });
+
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // 1. Typewriter headline: type, pause, delete, next phrase
+  (() => {
+    const el = document.getElementById('typed');
+    const phrases = ['reliable .NET backends.', 'rules engines that scale.', 'fast, well-tuned SQL APIs.', 'AI-assisted workflows.'];
+    el.parentElement.setAttribute('aria-label', 'I build ' + phrases.join(' '));
+    if (calm) { el.textContent = phrases[0]; return; }
+    let p = 0, i = phrases[0].length, deleting = true;
+    const tick = () => {
+      const word = phrases[p];
+      if (deleting) {
+        el.textContent = word.slice(0, --i);
+        if (i === 0) { deleting = false; p = (p + 1) % phrases.length; return setTimeout(tick, 350); }
+        return setTimeout(tick, 28);
+      }
+      el.textContent = phrases[p].slice(0, ++i);
+      if (i === phrases[p].length) { deleting = true; return setTimeout(tick, 2200); }
+      setTimeout(tick, 55 + Math.random() * 40);
+    };
+    setTimeout(tick, 2600);
+  })();
+
+  // 2. Count-up stats when they scroll into view
+  (() => {
+    const els = document.querySelectorAll('[data-count]');
+    if (calm) return;
+    const run = el => {
+      const tpl = el.textContent, nums = tpl.match(/\d+/g).map(Number), t0 = performance.now(), dur = 900;
+      const frame = now => {
+        const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        let n = 0; el.textContent = tpl.replace(/\d+/g, () => Math.round(nums[n++] * e));
+        if (k < 1) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    };
+    const o = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { run(e.target); o.unobserve(e.target); } }), { threshold: .6 });
+    els.forEach(el => o.observe(el));
+  })();
+
+  // 3. Spotlight that follows the cursor on project cards
+  document.querySelectorAll('.card').forEach(c => c.addEventListener('pointermove', e => {
+    const r = c.getBoundingClientRect();
+    c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  }));
+
+  // 4. Stagger reveals within the same group
+  document.querySelectorAll('.grid, #experience .wrap').forEach(g =>
+    [...g.querySelectorAll(':scope > .reveal')].forEach((el, i) => el.style.transitionDelay = (i % 4) * 70 + 'ms'));
 
   // Reveal on scroll
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
